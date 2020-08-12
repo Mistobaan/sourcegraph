@@ -178,6 +178,10 @@ export const queryChangesets = ({
                             checkState: $checkState
                         ) {
                             totalCount
+                            pageInfo {
+                                endCursor
+                                hasNextPage
+                            }
                             nodes {
                                 ...ChangesetFields
                             }

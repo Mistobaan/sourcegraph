@@ -9,7 +9,7 @@ import (
 	"github.com/sourcegraph/sourcegraph/internal/conf"
 )
 
-// Make private, access via functions
+// TODO: Make private, access via functions
 var CryptObject Encryptor
 var configuredToEncrypt bool
 

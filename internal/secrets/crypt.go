@@ -17,8 +17,8 @@ import (
 const (
 	validKeyLength = 32
 	hmacSize       = sha256.Size
-	primaryKey     = iota
-	secondaryKey   = iota
+	primaryKey     = 0
+	secondaryKey   = 1
 )
 
 type EncryptionError struct {
@@ -135,6 +135,11 @@ func (e *Encryptor) DecryptBytes(b []byte) (string, error) {
 // Decrypts the string, returning the decrypted value.
 func (e *Encryptor) decrypt(encodedValue string) (string, error) {
 
+	// handle plaintext use case
+	if len(e.EncryptionKeys) == 0 {
+		return encodedValue, nil
+	}
+
 	for _, key := range e.EncryptionKeys {
 		encrypted, err := base64.StdEncoding.DecodeString(encodedValue)
 		if err != nil {
@@ -155,7 +160,7 @@ func (e *Encryptor) decrypt(encodedValue string) (string, error) {
 		fmt.Printf("wrote %d bytes \n", n)
 		expectedMac := mac.Sum(nil)
 		if !hmac.Equal(extractedMac, expectedMac) {
-			log15.Warn("mac doesn't match")
+			log15.Warn("mac doesn't match, may retry")
 			continue
 		}
 

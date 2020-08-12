@@ -1,5 +1,4 @@
 import React from 'react'
-import { CampaignsIcon } from '../icons'
 import { Link } from '../../../../../shared/src/components/Link'
 import { CampaignFields } from '../../../graphql-operations'
 
@@ -44,17 +43,9 @@ export const CampaignActionsBar: React.FunctionComponent<Props> = ({ campaign })
     )
 }
 
-const CampaignStateBadge: React.FunctionComponent<{ isClosed: boolean }> = ({ isClosed }) => {
+export const CampaignStateBadge: React.FunctionComponent<{ isClosed: boolean }> = ({ isClosed }) => {
     if (isClosed) {
-        return (
-            <span className="badge badge-danger text-uppercase mr-2">
-                <CampaignsIcon className="icon-inline campaign-actions-bar__campaign-icon" /> Closed
-            </span>
-        )
+        return <span className="badge badge-danger text-uppercase">Closed</span>
     }
-    return (
-        <span className="badge badge-success text-uppercase mr-2">
-            <CampaignsIcon className="icon-inline campaign-actions-bar__campaign-icon" /> Open
-        </span>
-    )
+    return <span className="badge badge-success text-uppercase">Open</span>
 }

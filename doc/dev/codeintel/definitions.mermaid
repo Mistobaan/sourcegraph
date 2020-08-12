@@ -7,7 +7,11 @@ sequenceDiagram
     loop for each dump returning first result
         Resolvers       ->>+ Code Intel API: Definitions(dump 1, pos)
         Code Intel API  ->>+ Bundle Manager: Definitions(dump 1, pos)
-        Bundle Manager -->>- Code Intel API: { }
+        Bundle Manager -->>- Code Intel API: definitions
+        opt if not empty
+            Code Intel API -->> Resolvers: definitions
+        end
+
         Code Intel API  ->>+ Bundle Manager: MonikersByPosition(dump 1, pos)
         Bundle Manager -->>- Code Intel API: [moniker 1, ...]
 
@@ -17,8 +21,9 @@ sequenceDiagram
             Code Intel API  ->>+ Store: GetPackage(pkg)
             Store          -->>- Code Intel API: dump 2
             Code Intel API  ->>+ Bundle Manager: MonikerResults(dump 2, moniker 1)
-            Bundle Manager  ->>- Code Intel API: [def1, def2, def3]
+            Bundle Manager  ->>- Code Intel API: definitions
         end
-
-        Code Intel API -->>- Resolvers: [def1, def2, def3]
+        opt if not empty
+            Code Intel API -->>- Resolvers: definitions
+        end
     end

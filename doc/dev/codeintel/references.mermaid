@@ -4,21 +4,59 @@ sequenceDiagram
     Store          -->>- Code Intel API: [dump 1, ...]
     Code Intel API -->>- Resolvers: [dump 1, ...]
 
-    loop for each dump returning first result
-        Resolvers       ->>+ Code Intel API: Definitions(dump 1, pos)
-        Code Intel API  ->>+ Bundle Manager: Definitions(dump 1, pos)
-        Bundle Manager -->>- Code Intel API: { }
-        Code Intel API  ->>+ Bundle Manager: MonikersByPosition(dump 1, pos)
-        Bundle Manager -->>- Code Intel API: [moniker 1, ...]
+    loop for each dump
+        Resolvers ->>+ Code Intel API: References(cursor)
 
-        loop for each moniker returning first result
-            Code Intel API  ->>+ Bundle Manager: PackageInformation(moniker 1)
-            Bundle Manager -->>- Code Intel API: pkg
-            Code Intel API  ->>+ Store: GetPackage(pkg)
-            Store          -->>- Code Intel API: dump 2
-            Code Intel API  ->>+ Bundle Manager: MonikerResults(dump 2, moniker 1)
-            Bundle Manager  ->>- Code Intel API: [def1, def2, def3]
+        alt
+            Code Intel API           ->>+ Reference Page Resolver: handleSameDumpCursor
+            Reference Page Resolver  ->>+ Bundle Manager: References
+            Bundle Manager          -->>- Reference Page Resolver: references
+            Reference Page Resolver -->>- Code Intel API: references, new cursor
         end
 
-        Code Intel API -->>- Resolvers: [def1, def2, def3]
+        alt
+            Code Intel API           ->>+ Reference Page Resolver: handleSameDumpMonikersCursor
+            Reference Page Resolver  ->>+ Bundle Manager: References
+            Bundle Manager          -->>- Reference Page Resolver: references
+            Reference Page Resolver  ->>+ Bundle Manager: MonikerResults
+            Bundle Manager          -->>- Reference Page Resolver: references2
+            Reference Page Resolver -->>- Code Intel API: (references2 - references1), new cursor
+        end
+
+        alt
+            Code Intel API ->>+ Reference Page Resolver: handleDefinitionMonikersCursor
+            loop for each moniker, returning first moniker with package data
+                Reference Page Resolver ->>+ Bundle Manager: PackageInformation
+                Bundle Manager         -->>- Reference Page Resolver: pdata
+                Reference Page Resolver ->>+ Store: GetPackage(pkg)
+                Store                  -->>- Reference Page Resolver: dump 2
+                Reference Page Resolver ->>+ Bundle Manager: MonikerResults(dump 2, moniker 1)
+                Bundle Manager          ->>- Reference Page Resolver: references
+            end
+            Reference Page Resolver -->>- Code Intel API: references, new cursor
+        end
+
+        alt
+            Code Intel API          ->>+ Reference Page Resolver: handleSameRepoCursor
+            Reference Page Resolver ->>+ Store: SameRepoPager
+            Store                  -->>- Reference Page Resolver: dumps
+            loop for each dump
+                Reference Page Resolver ->>+ Bundle Manager: MonikerResults(dump, moniker from above)
+                Bundle Manager         -->>- Reference Page Resolver: references
+            end
+            Reference Page Resolver -->>- Code Intel API: references, new cursor
+        end
+
+        alt
+            Code Intel API          ->>+ Reference Page Resolver: handleRemoteRepoCursor
+            Reference Page Resolver ->>+ Store: PackageReferencePager
+            Store                  -->>- Reference Page Resolver: dumps
+            loop for each dump
+                Reference Page Resolver ->>+ Bundle Manager: MonikerResults(dump, moniker from above)
+                Bundle Manager         -->>- Reference Page Resolver: references
+            end
+            Reference Page Resolver -->>- Code Intel API: references, new cursor
+        end
+
+        Code Intel API -->>- Resolvers: concatenated references
     end

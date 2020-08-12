@@ -1,0 +1,31 @@
+sequenceDiagram
+  Caller          ->>+ Resolvers: Definitions(file, pos)
+  Resolvers       ->>+ Code Intel API: FindClosestDumps(TODO)
+  Code Intel API  ->>+ Store: FindClosestDumps(TODO)
+  Store          -->>- Code Intel API: dumps
+  Code Intel API -->>- Resolvers: dumps
+
+  loop for each dumps[i] while locations is empty
+    Resolvers         -->>+ Position Adjuster: AdjustPosition(file, pos)
+    Position Adjuster -->>- Resolvers: adjusted file, adjusted pos
+    Resolvers          ->>+ Code Intel API: Definitions(dumps[i], adjusted file, adjusted pos)
+    Code Intel API     ->>+ Bundle Manager: Definitions(dump, pos)
+    Bundle Manager    -->>- Code Intel API: locations
+    Code Intel API     ->>+ Bundle Manager: MonikersByPosition(dump, pos)
+    Bundle Manager    -->>- Code Intel API: monikers
+
+    loop for each monikers[i] while locations is empty
+        Code Intel API  ->>+ Bundle Manager: PackageInformation(monikers[i])
+        Bundle Manager -->>- Code Intel API: package information
+        Code Intel API  ->>+ Store: GetPackage(package information)
+        Store          -->>- Code Intel API: package dump
+        Code Intel API  ->>+ Bundle Manager: MonikerResults(package dump, monikers[i])
+        Bundle Manager -->>- Code Intel API: locations
+    end
+
+    Code Intel API -->>- Resolvers: locations
+  end
+
+  Resolvers         -->>+ Position Adjuster: AdjustLocations(locations)
+  Position Adjuster -->>- Resolvers: adjusted locations
+  Resolvers         -->>- Caller: adjusted locations

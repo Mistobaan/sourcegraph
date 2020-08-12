@@ -1,0 +1,26 @@
+sequenceDiagram
+  Caller          ->>+ Resolvers: Hover(file, pos)
+  Resolvers       ->>+ Code Intel API: FindClosestDumps(TODO)
+  Code Intel API  ->>+ Store: FindClosestDumps(TODO)
+  Store          -->>- Code Intel API: dumps
+  Code Intel API -->>- Resolvers: dumps
+
+  loop for each dumps[i] (while hover text is empty)
+    Resolvers         -->>+ Position Adjuster: AdjustPosition(file, pos)
+    Position Adjuster -->>- Resolvers: adjusted file, adjusted pos
+    Resolvers          ->>+ Code Intel API: Hover(dumps[i], adjusted file, adjusted pos)
+    Code Intel API     ->>+ Bundle Manager: Hover(dumps[i], pos)
+    Bundle Manager    -->>- Code Intel API: hover text, range
+
+    alt if no hover text
+      Code Intel API  ->>  Code Intel API: dump', pos' = Definition(dumps[i], pos)
+      Code Intel API  ->>+ Bundle Manager: Hover(dump', pos')
+      Bundle Manager -->>- Code Intel API: hover text, range
+    end
+
+    Code Intel API -->>- Resolvers: hover text, range
+  end
+
+  Resolvers         -->>+ Position Adjuster: AdjustRange(range)
+  Position Adjuster -->>- Resolvers: adjusted range
+  Resolvers         -->>- Caller: hover text, adjusted range

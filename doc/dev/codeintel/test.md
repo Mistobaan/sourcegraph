@@ -1,11 +1,17 @@
-# Definitions flow
+<!--
+# Ranges
 
-<object data="/dev/codeintel/definitions.svg" type="image/svg+xml" style="width:100%; height: 100%"></object>
+<object data="/dev/codeintel/diagrams/ranges.svg" type="image/svg+xml"></object>
+-->
 
-# References flow
+# Definitions
 
-<object data="/dev/codeintel/references.svg" type="image/svg+xml" style="width:100%; height: 100%"></object>
+<object data="/dev/codeintel/diagrams/definitions.svg" type="image/svg+xml"></object>
 
-# Hover flow
+# References
 
-<object data="/dev/codeintel/hover.svg" type="image/svg+xml" style="width:100%; height: 100%"></object>
+<object data="/dev/codeintel/diagrams/references.svg" type="image/svg+xml"></object>
+
+# Hover
+
+<object data="/dev/codeintel/diagrams/hover.svg" type="image/svg+xml"></object>

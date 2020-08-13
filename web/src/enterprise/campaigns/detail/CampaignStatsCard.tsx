@@ -5,8 +5,8 @@ import SourceBranchIcon from 'mdi-react/SourceBranchIcon'
 import CheckCircleOutlineIcon from 'mdi-react/CheckCircleOutlineIcon'
 import classNames from 'classnames'
 import { CampaignFields } from '../../../graphql-operations'
-import { CampaignStateBadge } from './CampaignActionsBar'
 import SourcePullIcon from 'mdi-react/SourcePullIcon'
+import { CampaignStateBadge } from './CampaignStateBadge'
 
 interface CampaignStatsCardProps extends Pick<CampaignFields['changesets'], 'stats'> {
     closedAt: CampaignFields['closedAt']

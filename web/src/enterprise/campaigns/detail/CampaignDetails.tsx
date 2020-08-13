@@ -4,20 +4,23 @@ import React, { useEffect, useMemo } from 'react'
 import { HeroPage } from '../../../components/HeroPage'
 import { PageTitle } from '../../../components/PageTitle'
 import { isEqual } from 'lodash'
-import { fetchCampaignById } from './backend'
+import { fetchCampaignById as _fetchCampaignById, queryChangesets as _queryChangesets } from './backend'
 import { useObservable } from '../../../../../shared/src/util/useObservable'
 import * as H from 'history'
 import { CampaignBurndownChart } from './BurndownChart'
 import { Subject, of, merge } from 'rxjs'
 import { switchMap, distinctUntilChanged } from 'rxjs/operators'
 import { ThemeProps } from '../../../../../shared/src/theme'
-import { CampaignActionsBar } from './CampaignActionsBar'
 import { CampaignChangesets } from './changesets/CampaignChangesets'
 import { ExtensionsControllerProps } from '../../../../../shared/src/extensions/controller'
 import { PlatformContextProps } from '../../../../../shared/src/platform/context'
 import { TelemetryProps } from '../../../../../shared/src/telemetry/telemetryService'
 import { CampaignFields, Scalars } from '../../../graphql-operations'
-import { CampaignInfoCard } from './CampaignInfoCard'
+import { CampaignDescription } from './CampaignDescription'
+import { CampaignStatsCard } from './CampaignStatsCard'
+import { CampaignHeader } from './CampaignHeader'
+import SourceBranchIcon from 'mdi-react/SourceBranchIcon'
+import ChartLineVariantIcon from 'mdi-react/ChartLineVariantIcon'
 
 interface Props extends ThemeProps, ExtensionsControllerProps, PlatformContextProps, TelemetryProps {
     /**
@@ -28,7 +31,9 @@ interface Props extends ThemeProps, ExtensionsControllerProps, PlatformContextPr
     location: H.Location
 
     /** For testing only. */
-    _fetchCampaignById?: typeof fetchCampaignById
+    fetchCampaignById?: typeof _fetchCampaignById
+    /** For testing only. */
+    queryChangesets?: typeof _queryChangesets
 }
 
 /**
@@ -42,7 +47,8 @@ export const CampaignDetails: React.FunctionComponent<Props> = ({
     extensionsController,
     platformContext,
     telemetryService,
-    _fetchCampaignById = fetchCampaignById,
+    fetchCampaignById = _fetchCampaignById,
+    queryChangesets,
 }) => {
     /** Retrigger fetching */
     const campaignUpdates = useMemo(() => new Subject<void>(), [])
@@ -55,10 +61,10 @@ export const CampaignDetails: React.FunctionComponent<Props> = ({
         useMemo(
             () =>
                 merge(of(undefined), campaignUpdates).pipe(
-                    switchMap(() => _fetchCampaignById(campaignID)),
+                    switchMap(() => fetchCampaignById(campaignID)),
                     distinctUntilChanged((a, b) => isEqual(a, b))
                 ),
-            [campaignID, campaignUpdates, _fetchCampaignById]
+            [campaignID, campaignUpdates, fetchCampaignById]
         )
     )
 
@@ -78,15 +84,26 @@ export const CampaignDetails: React.FunctionComponent<Props> = ({
     return (
         <>
             <PageTitle title={campaign.name} />
-            <CampaignActionsBar campaign={campaign} />
-            <CampaignInfoCard
+            <CampaignHeader name={campaign.name} namespace={campaign.namespace} />
+            <CampaignStatsCard closedAt={campaign.closedAt} stats={campaign.changesets.stats} />
+            <CampaignDescription history={history} description={campaign.description} />
+            <ul className="nav nav-tabs">
+                <li className="nav-item">
+                    <span className="nav-link active">
+                        <SourceBranchIcon className="icon-inline text-muted mr-1" /> Changesets
+                    </span>
+                </li>
+                <li className="nav-item">
+                    <span className="nav-link">
+                        <ChartLineVariantIcon className="icon-inline text-muted mr-1" /> Burndown chart
+                    </span>
+                </li>
+            </ul>
+            {/* <CampaignBurndownChart
+                changesetCountsOverTime={campaign.changesetCountsOverTime}
                 history={history}
-                author={campaign.initialApplier}
-                createdAt={campaign.createdAt}
-                description={campaign.description}
-            />
-            <h3 className="mt-4 mb-2">Progress</h3>
-            <CampaignBurndownChart changesetCountsOverTime={campaign.changesetCountsOverTime} history={history} />
+                key="burndown"
+            /> */}
             <CampaignChangesets
                 campaignID={campaign.id}
                 viewerCanAdminister={campaign.viewerCanAdminister}
@@ -98,6 +115,7 @@ export const CampaignDetails: React.FunctionComponent<Props> = ({
                 extensionsController={extensionsController}
                 platformContext={platformContext}
                 telemetryService={telemetryService}
+                queryChangesets={queryChangesets}
             />
         </>
     )

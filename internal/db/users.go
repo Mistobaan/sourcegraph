@@ -385,6 +385,7 @@ func (u *users) Update(ctx context.Context, id int32, update UserUpdate) error {
 	return nil
 }
 
+// Delete performs a soft-delete of the user and all resources associated with this user.
 func (u *users) Delete(ctx context.Context, id int32) error {
 	if Mocks.Users.Delete != nil {
 		return Mocks.Users.Delete(ctx, id)
@@ -438,10 +439,14 @@ func (u *users) Delete(ctx context.Context, id int32) error {
 	if _, err := tx.ExecContext(ctx, "UPDATE registry_extensions SET deleted_at=now() WHERE deleted_at IS NULL AND publisher_user_id=$1", id); err != nil {
 		return err
 	}
+	if _, err := tx.ExecContext(ctx, "UPDATE external_services SET deleted_at=now() WHERE deleted_at IS NULL AND namespace_user_id=$1", id); err != nil {
+		return err
+	}
 
 	return nil
 }
 
+// HardDelete removes the user and all resources associated with this user.
 func (u *users) HardDelete(ctx context.Context, id int32) error {
 	if Mocks.Users.HardDelete != nil {
 		return Mocks.Users.HardDelete(ctx, id)
@@ -482,6 +487,9 @@ func (u *users) HardDelete(ctx context.Context, id int32) error {
 		return err
 	}
 	if _, err := tx.ExecContext(ctx, "DELETE FROM registry_extensions WHERE publisher_user_id=$1", id); err != nil {
+		return err
+	}
+	if _, err := tx.ExecContext(ctx, "DELETE FROM external_services WHERE namespace_user_id=$1", id); err != nil {
 		return err
 	}
 	if _, err := tx.ExecContext(ctx, "DELETE FROM org_invitations WHERE sender_user_id=$1 OR recipient_user_id=$1", id); err != nil {

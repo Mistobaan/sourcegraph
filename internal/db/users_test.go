@@ -512,8 +512,8 @@ func TestUsers_GetByUsernames(t *testing.T) {
 }
 
 func TestUsers_Delete(t *testing.T) {
-	for name, hard := range map[string]bool{"": false, "_Hard": true} {
-		t.Run("TestUsers_Delete"+name, func(t *testing.T) {
+	for name, hard := range map[string]bool{"soft": false, "hard": true} {
+		t.Run(name, func(t *testing.T) {
 			if testing.Short() {
 				t.Skip()
 			}

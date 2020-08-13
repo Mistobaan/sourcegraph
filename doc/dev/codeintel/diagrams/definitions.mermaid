@@ -1,26 +1,29 @@
 sequenceDiagram
-  Caller          ->>+ Resolvers: Definitions(file, pos)
-  Resolvers       ->>+ Code Intel API: FindClosestDumps(TODO)
-  Code Intel API  ->>+ Store: FindClosestDumps(TODO)
+  Caller          ->>+ Resolvers: Definitions(repo, commit, file, position)
+  Resolvers       ->>+ Code Intel API: FindClosestDumps(repo, commit, file)
+  Code Intel API  ->>+ Store: FindClosestDumps(repo, commit, file)
   Store          -->>- Code Intel API: dumps
   Code Intel API -->>- Resolvers: dumps
 
-  loop for each dumps[i] while locations is empty
-    Resolvers         -->>+ Position Adjuster: AdjustPosition(file, pos)
-    Position Adjuster -->>- Resolvers: adjusted file, adjusted pos
-    Resolvers          ->>+ Code Intel API: Definitions(dumps[i], adjusted file, adjusted pos)
-    Code Intel API     ->>+ Bundle Manager: Definitions(dump, pos)
+  loop for each dumps[i] (while locations is empty)
+    Resolvers         -->>+ Position Adjuster: AdjustPosition(file, position, from: commit, to: dumps[i].commit)
+    Position Adjuster -->>- Resolvers: adjusted file, adjusted position
+    Resolvers          ->>+ Code Intel API: Definitions(dumps[i], adjusted file, adjusted position)
+    Code Intel API     ->>+ Bundle Manager: Definitions(dumps[i], adjusted file, adjusted position)
     Bundle Manager    -->>- Code Intel API: locations
-    Code Intel API     ->>+ Bundle Manager: MonikersByPosition(dump, pos)
-    Bundle Manager    -->>- Code Intel API: monikers
 
-    loop for each monikers[i] while locations is empty
+    alt if locations is empty
+    Code Intel API     ->>+ Bundle Manager: MonikersByPosition(dump, adjusted file, adjusted position)
+      Bundle Manager    -->>- Code Intel API: monikers
+
+      loop for each monikers[i] (while locations is empty)
         Code Intel API  ->>+ Bundle Manager: PackageInformation(monikers[i])
         Bundle Manager -->>- Code Intel API: package information
         Code Intel API  ->>+ Store: GetPackage(package information)
         Store          -->>- Code Intel API: package dump
         Code Intel API  ->>+ Bundle Manager: MonikerResults(package dump, monikers[i])
         Bundle Manager -->>- Code Intel API: locations
+      end
     end
 
     Code Intel API -->>- Resolvers: locations

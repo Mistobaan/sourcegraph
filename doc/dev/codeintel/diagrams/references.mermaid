@@ -1,66 +1,32 @@
 sequenceDiagram
-  Caller          ->>+ Resolvers: References(file, pos)
-  Resolvers       ->>+ Code Intel API: FindClosestDumps(TODO)
-  Code Intel API  ->>+ Store: FindClosestDumps(TODO)
+  Caller          ->>+ Resolvers: References(repo, commit, file, position)
+  Resolvers       ->>+ Code Intel API: FindClosestDumps(repo, commit, file)
+  Code Intel API  ->>+ Store: FindClosestDumps(repo, commit, file)
   Store          -->>- Code Intel API: dumps
   Code Intel API -->>- Resolvers: dumps
 
   loop for each dumps[i]
-    Resolvers         -->>+ Position Adjuster: AdjustPosition(file, pos)
-    Position Adjuster -->>- Resolvers: adjusted file, adjusted pos
-    Resolvers          ->>+ Code Intel API: References(cursor)
+    Resolvers         -->>+ Position Adjuster: AdjustPosition(file, position)
+    Position Adjuster -->>- Resolvers: adjusted file, adjusted position
 
-    loop while under page limit
-      alt handleSameDumpCursor
-        Code Intel API           ->>+ Reference Page Resolver: resolvePage(cursor)
-        Reference Page Resolver  ->>+ Bundle Manager: References(TODO)
-        Bundle Manager          -->>- Reference Page Resolver: locations[i]
-        Reference Page Resolver -->>- Code Intel API: locations[i], cursor'
+    alt if cursor is supplied
+      Note right of Resolvers: cursor is decoded from request
+    else
+      Resolvers       ->>+ Bundle Manager: MonikersForPosition(dumps[i], adjusted file, adjusted position)
+      Bundle Manager -->>- Resolvers: monikers
 
-      else handleSameDumpMonikersCursor
-        Code Intel API           ->>+ Reference Page Resolver: resolvePage(cursor)
-        Reference Page Resolver  ->>+ Bundle Manager: References(TODO)
-        Bundle Manager          -->>- Reference Page Resolver: previous locations[i]
-        Reference Page Resolver  ->>+ Bundle Manager: MonikerResults(TODO)
-        Bundle Manager          -->>- Reference Page Resolver: locations[i]'
-        Reference Page Resolver -->>- Code Intel API: locations[i] = (locations[i]' \ locations[i]), cursor'
-
-      else handleDefinitionMonikersCursor
-        Code Intel API ->>+ Reference Page Resolver: resolvePage(cursor)
-        loop for each monikers[i], returning first with package data
-          Reference Page Resolver ->>+ Bundle Manager: PackageInformation(monikers[i])
-          Bundle Manager         -->>- Reference Page Resolver: package information
-          Reference Page Resolver ->>+ Store: GetPackage(package information)
-          Store                  -->>- Reference Page Resolver: dump'
-        end
-
-        Reference Page Resolver   ->>+ Bundle Manager: MonikerResults(dump', monikers[i])
-        Bundle Manager            ->>- Reference Page Resolver: locations[i]
-        Reference Page Resolver  -->>- Code Intel API: locations[i], cursor'
-
-      else handleSameRepoCursor
-        Code Intel API           ->>+ Reference Page Resolver: resolvePage(cursor)
-        Reference Page Resolver  ->>+ Store: SameRepoPager(TODO)
-        Store                   -->>- Reference Page Resolver: dumps
-        loop for each dumps[i]
-          Reference Page Resolver ->>+ Bundle Manager: MonikerResults(dumps[i], monikers[i])
-          Bundle Manager         -->>- Reference Page Resolver: locations[i]
-        end
-        Reference Page Resolver -->>- Code Intel API: locations[i], cursor'
-
-      else handleRemoteRepoCursor
-        Code Intel API          ->>+ Reference Page Resolver: resolvePage(cursor)
-        Reference Page Resolver ->>+ Store: PackageReferencePager(TODO)
-        Store                  -->>- Reference Page Resolver: dumps
-        loop for each dumps[i]
-          Reference Page Resolver ->>+ Bundle Manager: MonikerResults(dumps[i], monikers[i])
-          Bundle Manager         -->>- Reference Page Resolver: locations[i]
-        end
-        Reference Page Resolver  -->>- Code Intel API: locations[i], cursor'
-      end
+      Note right of Resolvers: cursor is created from <dump, monikers, adjusted file, adjusted position>
     end
 
-    Code Intel API    -->>- Resolvers: locations[0], ..., locations[n], cursor'
+    Resolvers ->>+ Code Intel API: References(cursor)
+
+    loop while under page limit
+      Code Intel API           ->>+ Reference Page Resolver: resolvePage(cursor)
+      Reference Page Resolver -->>- Code Intel API: locations, cursor'
+      Note right of Code Intel API: cursor = cursor' on subsequent iteration
+    end
+
+    Code Intel API -->>- Resolvers: locations[0], ..., locations[n], cursor'
   end
 
   Resolvers         -->>+ Position Adjuster: AdjustLocations(locations[0], ..., locations[n])

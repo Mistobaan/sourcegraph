@@ -1,20 +1,20 @@
 sequenceDiagram
-  Caller          ->>+ Resolvers: Hover(file, pos)
-  Resolvers       ->>+ Code Intel API: FindClosestDumps(TODO)
-  Code Intel API  ->>+ Store: FindClosestDumps(TODO)
+  Caller          ->>+ Resolvers: Hover(repo, commit, file, position)
+  Resolvers       ->>+ Code Intel API: FindClosestDumps(repo, commit, file)
+  Code Intel API  ->>+ Store: FindClosestDumps(repo, commit, file)
   Store          -->>- Code Intel API: dumps
   Code Intel API -->>- Resolvers: dumps
 
   loop for each dumps[i] (while hover text is empty)
-    Resolvers         -->>+ Position Adjuster: AdjustPosition(file, pos)
-    Position Adjuster -->>- Resolvers: adjusted file, adjusted pos
-    Resolvers          ->>+ Code Intel API: Hover(dumps[i], adjusted file, adjusted pos)
-    Code Intel API     ->>+ Bundle Manager: Hover(dumps[i], pos)
+    Resolvers         -->>+ Position Adjuster: AdjustPosition(file, position, from: commit, to: dumps[i].commit)
+    Position Adjuster -->>- Resolvers: adjusted file, adjusted position
+    Resolvers          ->>+ Code Intel API: Hover(dumps[i], adjusted file, adjusted position)
+    Code Intel API     ->>+ Bundle Manager: Hover(dumps[i], adjusted file, adjusted position)
     Bundle Manager    -->>- Code Intel API: hover text, range
 
     alt if no hover text
-      Code Intel API  ->>  Code Intel API: dump', pos' = Definition(dumps[i], pos)
-      Code Intel API  ->>+ Bundle Manager: Hover(dump', pos')
+      Code Intel API  ->>  Code Intel API: dump', position' = Definition(repo, commit, adjusted file, adjusted position)
+      Code Intel API  ->>+ Bundle Manager: Hover(dump', position')
       Bundle Manager -->>- Code Intel API: hover text, range
     end
 

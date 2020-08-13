@@ -80,7 +80,7 @@ const nodes: ChangesetFields[] = [
         })
     ),
 ]
-const queryChangesets = () => of({ totalCount: nodes.length, nodes })
+const queryChangesets = () => of({ totalCount: nodes.length, nodes, pageInfo: { endCursor: null, hasNextPage: false } })
 const updates = new Subject<void>()
 
 add('List of changesets', () => (

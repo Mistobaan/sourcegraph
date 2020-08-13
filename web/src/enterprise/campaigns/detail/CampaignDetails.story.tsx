@@ -41,7 +41,7 @@ const campaign: CampaignFields = {
     },
     createdAt: subDays(new Date(), 5).toISOString(),
     initialApplier: {
-        avatarURL: 'http://test.test/avatar',
+        url: '/users/alice',
         username: 'alice',
     },
     diffStat: {

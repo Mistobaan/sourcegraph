@@ -32,7 +32,7 @@ describe('CampaignDetails', () => {
                     id: 'c',
                     name: 'n',
                     description: 'd',
-                    initialApplier: { username: 'alice', avatarURL: 'http://test.test/avatar' },
+                    initialApplier: { username: 'alice', url: '/users/alice' },
                     changesets: { totalCount: 0, stats: { total: 10, closed: 0, merged: 0, open: 8, unpublished: 2 } },
                     changesetCountsOverTime: [],
                     viewerCanAdminister,

@@ -84,7 +84,13 @@ export const CampaignDetails: React.FunctionComponent<Props> = ({
     return (
         <>
             <PageTitle title={campaign.name} />
-            <CampaignHeader name={campaign.name} namespace={campaign.namespace} />
+            <CampaignHeader
+                name={campaign.name}
+                namespace={campaign.namespace}
+                creator={campaign.initialApplier}
+                createdAt={campaign.createdAt}
+                className="mb-3"
+            />
             <CampaignStatsCard closedAt={campaign.closedAt} stats={campaign.changesets.stats} />
             <CampaignDescription history={history} description={campaign.description} />
             <ul className="nav nav-tabs">

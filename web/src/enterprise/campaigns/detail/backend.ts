@@ -40,10 +40,7 @@ const campaignFragment = gql`
         description
         initialApplier {
             username
-            avatarURL
-        }
-        namespace {
-            namespaceName
+            url
         }
         createdAt
         updatedAt
